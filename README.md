@@ -13,7 +13,7 @@
          └─ /video/status    查询任务状态 / 视频 URL
 ```
 
-默认管线 **文生图 (qwen-image) → MuseSteamer 图生视频**（账号通常无纯文生视频权限）。
+默认管线 **文生图 (qwen-image) → 蒸汽机 Air 图生视频 (`musesteamer-air-i2v`)**。
 生成约 1～5 分钟，前端轮询；任务记在 localStorage。
 
 ## 目录

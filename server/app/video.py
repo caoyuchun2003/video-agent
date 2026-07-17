@@ -19,7 +19,7 @@ from .llm import QIANFAN_BASE, headers
 PIPELINE = os.environ.get("VIDEO_PIPELINE", "t2i_i2v")  # t2i_i2v | text2video
 IMAGE_MODEL = os.environ.get("IMAGE_MODEL", "qwen-image")
 IMAGE_SIZE = os.environ.get("IMAGE_SIZE", "1280x720")
-VIDEO_MODEL = os.environ.get("VIDEO_MODEL", "musesteamer-2.0-turbo-i2v")
+VIDEO_MODEL = os.environ.get("VIDEO_MODEL", "musesteamer-air-i2v")
 VIDEO_DURATION = os.environ.get("VIDEO_DURATION", "5")
 VIDEO_MODE = os.environ.get("VIDEO_MODE", "std")
 VIDEO_ASPECT = os.environ.get("VIDEO_ASPECT_RATIO", "16:9")
@@ -49,8 +49,8 @@ _STATUS_MAP = {
 }
 
 _FAIL_HINT = (
-    "视频任务失败。请到千帆控制台开通 MuseSteamer/视频生成并确认有余额;"
-    "开通后无需改代码,重试即可。"
+    "视频任务失败。请确认模型广场已开通「蒸汽机 Air」(API model=musesteamer-air-i2v) "
+    "并有余额；控制台的 am-xxx 是应用 ID，不能当作 model 字段。"
 )
 
 
