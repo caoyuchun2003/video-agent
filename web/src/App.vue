@@ -31,7 +31,7 @@ function requirePhrase() {
   return true
 }
 
-# ---- 创作流 ----
+// ---- 创作流 ----
 async function onPolish(idea) {
   lastIdea.value = idea
   polishing.value = true
