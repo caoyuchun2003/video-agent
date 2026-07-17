@@ -13,7 +13,7 @@ fi
 
 : "${BACKEND_URL:?请 export BACKEND_URL=http://IP/video}"
 : "${GATEWAY_TOKEN:?请 export GATEWAY_TOKEN=...}"
-ALLOW_ORIGIN="${ALLOW_ORIGIN:-https://video.yuchuntest.com}"
+ALLOW_ORIGIN="${ALLOW_ORIGIN:-https://video.yuchuntest.com,http://video.yuchuntest.com}"
 
 BASE_TEMPLATE="${ROOT}/template.yaml"
 DEPLOY_TEMPLATE="${ROOT}/template.deploy.yaml"

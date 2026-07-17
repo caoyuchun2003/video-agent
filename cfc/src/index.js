@@ -18,7 +18,11 @@ const { URL } = require('url');
 
 const BACKEND_URL = process.env.BACKEND_URL || '';
 const GATEWAY_TOKEN = process.env.GATEWAY_TOKEN || '';
-const ALLOW_ORIGIN = process.env.ALLOW_ORIGIN || '*';
+// 逗号分隔白名单；证书未就绪时需同时放行 http + https
+const ALLOW_ORIGINS = String(process.env.ALLOW_ORIGIN || '*')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 const ROUTES = {
   '/prompt/polish': 'POST',
@@ -26,18 +30,28 @@ const ROUTES = {
   '/video/status': 'GET',
 };
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': ALLOW_ORIGIN,
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Max-Age': '86400',
-};
+function corsHeaders(event) {
+  const reqOrigin = (event && event.headers && (event.headers.origin || event.headers.Origin)) || '';
+  let allow = ALLOW_ORIGINS[0] || '*';
+  if (ALLOW_ORIGINS.includes('*')) {
+    allow = reqOrigin || '*';
+  } else if (reqOrigin && ALLOW_ORIGINS.includes(reqOrigin)) {
+    allow = reqOrigin;
+  }
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
+  };
+}
 
-function respond(statusCode, bodyObj) {
+function respond(event, statusCode, bodyObj) {
   return {
     isBase64Encoded: false,
     statusCode,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS_HEADERS },
+    headers: { 'Content-Type': 'application/json; charset=utf-8', ...corsHeaders(event) },
     body: typeof bodyObj === 'string' ? bodyObj : JSON.stringify(bodyObj),
   };
 }
@@ -80,16 +94,16 @@ exports.handler = async (event) => {
   const path = Object.keys(ROUTES).find((p) => rawPath === p || rawPath.endsWith(p));
 
   if (method === 'OPTIONS') {
-    return { isBase64Encoded: false, statusCode: 204, headers: CORS_HEADERS, body: '' };
+    return { isBase64Encoded: false, statusCode: 204, headers: corsHeaders(event), body: '' };
   }
   if (!path) {
-    return respond(404, { error: '未知路径' });
+    return respond(event, 404, { error: '未知路径' });
   }
   if (method !== ROUTES[path]) {
-    return respond(405, { error: `该路径仅支持 ${ROUTES[path]}` });
+    return respond(event, 405, { error: `该路径仅支持 ${ROUTES[path]}` });
   }
   if (!BACKEND_URL || !GATEWAY_TOKEN) {
-    return respond(500, { error: '网关未配置 BACKEND_URL / GATEWAY_TOKEN' });
+    return respond(event, 500, { error: '网关未配置 BACKEND_URL / GATEWAY_TOKEN' });
   }
 
   let body = event.body || '';
@@ -97,13 +111,13 @@ exports.handler = async (event) => {
     body = Buffer.from(body, 'base64').toString('utf-8');
   }
   if (Buffer.byteLength(body) > 64 * 1024) {
-    return respond(413, { error: '请求体过大' });
+    return respond(event, 413, { error: '请求体过大' });
   }
 
   try {
     const upstream = await forward(method, path, event.queryStringParameters, body);
-    return respond(upstream.statusCode || 502, upstream.body);
+    return respond(event, upstream.statusCode || 502, upstream.body);
   } catch (err) {
-    return respond(502, { error: `网关转发失败:${err.message}` });
+    return respond(event, 502, { error: `网关转发失败:${err.message}` });
   }
 };
