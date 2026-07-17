@@ -77,7 +77,6 @@ async def prompt_polish(
     req: PolishRequest, x_gateway_token: Optional[str] = Header(default=None)
 ) -> dict:
     _check_token(x_gateway_token)
-    _check_phrase(req.phrase)
     try:
         return await run_in_threadpool(polish_mod.polish, req.idea)
     except Exception as e:  # noqa: BLE001

@@ -23,17 +23,8 @@ function showToast(msg) {
   setTimeout(() => { toast.value = '' }, 4000)
 }
 
-function requirePhrase() {
-  if (!loadPhrase().trim()) {
-    showToast('请先填写访问口令')
-    return false
-  }
-  return true
-}
-
-// ---- 创作流 ----
+# ---- 创作流 ----
 async function onPolish(idea) {
-  if (!requirePhrase()) return
   lastIdea.value = idea
   polishing.value = true
   try {

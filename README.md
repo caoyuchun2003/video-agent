@@ -16,7 +16,7 @@
 默认管线 **文生图 (qwen-image) → 蒸汽机 Air 图生视频 (`musesteamer-air-i2v`)**。
 生成约 1～5 分钟，前端轮询；任务记在 localStorage。
 
-访问口令：服务器 `.env` 设 `ACCESS_PHRASE`，前端输入后写入 sessionStorage；润色/生成都会校验。
+访问口令：服务器 `.env` 设 `ACCESS_PHRASE`，前端输入后写入 sessionStorage；**仅生成视频**时校验（润色不需要）。
 
 ## 目录
 

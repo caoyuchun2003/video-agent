@@ -14,7 +14,7 @@ watch(phrase, (v) => savePhrase(v.trim()))
       v-model="phrase"
       type="password"
       autocomplete="off"
-      placeholder="请输入口令后再创作"
+      placeholder="生成视频前请输入口令"
     />
   </label>
 </template>

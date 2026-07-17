@@ -28,11 +28,11 @@ function withPhrase(body) {
   return { ...body, phrase: loadPhrase().trim() }
 }
 
-/** 优化提示词 → {title, polished_prompt, style} */
+/** 优化提示词 → {title, polished_prompt, style}（无需口令） */
 export const polishPrompt = (idea) =>
-  request('POST', '/prompt/polish', { body: withPhrase({ idea }) })
+  request('POST', '/prompt/polish', { body: { idea } })
 
-/** 提交生成任务 → {task_id} */
+/** 提交生成任务 → {task_id}（需访问口令） */
 export const createVideo = (prompt) =>
   request('POST', '/video/create', { body: withPhrase({ prompt }) })
 
