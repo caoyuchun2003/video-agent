@@ -1,0 +1,27 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: BCE::Serverless-2018-10-31
+Description: video-agent CFC gateway — HTTPS forward to BCC (no Qianfan key here)
+
+Resources:
+  VideoAgentGateway:
+    Type: BCE::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12
+      CodeUri: ./src/
+      Description: HTTPS gateway for video-agent (injects X-Gateway-Token)
+      MemorySize: 128
+      Timeout: 90
+      Environment:
+        Variables:
+          ALLOW_ORIGIN: 'https://video.yuchuntest.com'
+      Events:
+        VideoHttp:
+          Type: HTTP
+          Properties:
+            ResourcePath: /
+            Method:
+              - GET
+              - POST
+              - OPTIONS
+            AuthType: anonymous
