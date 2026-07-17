@@ -14,7 +14,7 @@ Resources:
       Timeout: 90
       Environment:
         Variables:
-          ALLOW_ORIGIN: 'https://video.yuchuntest.com,http://video.yuchuntest.com'
+          ALLOW_ORIGIN: 'https://video.yuchuntest.com'
       Events:
         # 贪婪路径：/prompt/polish、/video/create、/video/status
         VideoHttp:
