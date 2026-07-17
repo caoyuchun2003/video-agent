@@ -48,8 +48,12 @@ def _check_token(token: Optional[str]) -> None:
 def _check_phrase(phrase: Optional[str]) -> None:
     if not ACCESS_PHRASE:
         return
-    got = (phrase or "").strip()
-    if not hmac.compare_digest(got, ACCESS_PHRASE):
+    got = (phrase or "").strip().encode("utf-8")
+    expect = ACCESS_PHRASE.encode("utf-8")
+    # 先哈希再 compare,避免长度不等时 compare_digest 抛错变成 500
+    got_dig = hmac.new(b"phrase", got, "sha256").digest()
+    exp_dig = hmac.new(b"phrase", expect, "sha256").digest()
+    if not hmac.compare_digest(got_dig, exp_dig):
         raise HTTPException(403, "访问口令不正确")
 
 
