@@ -1,9 +1,11 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import IdeaInput from './components/IdeaInput.vue'
+import PhraseInput from './components/PhraseInput.vue'
 import PromptCard from './components/PromptCard.vue'
 import TaskCard from './components/TaskCard.vue'
 import { createVideo, getVideoStatus, polishPrompt } from './lib/api.js'
+import { loadPhrase } from './lib/phrase.js'
 import { loadTasks, saveTasks } from './lib/store.js'
 
 const polishing = ref(false)
@@ -21,8 +23,17 @@ function showToast(msg) {
   setTimeout(() => { toast.value = '' }, 4000)
 }
 
+function requirePhrase() {
+  if (!loadPhrase().trim()) {
+    showToast('请先填写访问口令')
+    return false
+  }
+  return true
+}
+
 // ---- 创作流 ----
 async function onPolish(idea) {
+  if (!requirePhrase()) return
   lastIdea.value = idea
   polishing.value = true
   try {
@@ -35,6 +46,7 @@ async function onPolish(idea) {
 }
 
 async function onGenerate(prompt) {
+  if (!requirePhrase()) return
   submitting.value = true
   try {
     const { task_id } = await createVideo(prompt)
@@ -107,6 +119,7 @@ onBeforeUnmount(() => pollTimer && clearInterval(pollTimer))
 
     <main>
       <section class="create">
+        <PhraseInput />
         <IdeaInput :loading="polishing" @polish="onPolish" />
         <PromptCard
           v-if="card"

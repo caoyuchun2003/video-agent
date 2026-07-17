@@ -1,4 +1,5 @@
 """FastAPI 入口:/prompt/polish、/video/create、/video/status + 网关令牌校验 + 频控。"""
+import hmac
 import os
 import time
 from typing import Optional
@@ -15,6 +16,8 @@ from . import polish as polish_mod  # noqa: E402
 from . import video  # noqa: E402
 
 GATEWAY_TOKEN = os.environ.get("GATEWAY_TOKEN", "")
+# 熟人访问口令(防公网刷额度);空则不校验(仅本地调试)
+ACCESS_PHRASE = os.environ.get("ACCESS_PHRASE", "").strip()
 RATE_PER_MINUTE = int(os.environ.get("RATE_PER_MINUTE", "2"))
 MAX_ACTIVE_TASKS = int(os.environ.get("MAX_ACTIVE_TASKS", "3"))
 
@@ -27,10 +30,12 @@ _active_tasks: set = set()
 
 class PolishRequest(BaseModel):
     idea: str = Field(min_length=1, max_length=500)
+    phrase: str = Field(default="", max_length=64)
 
 
 class CreateRequest(BaseModel):
     prompt: str = Field(min_length=1, max_length=2000)
+    phrase: str = Field(default="", max_length=64)
 
 
 def _check_token(token: Optional[str]) -> None:
@@ -38,6 +43,14 @@ def _check_token(token: Optional[str]) -> None:
         raise HTTPException(500, "服务器未配置 GATEWAY_TOKEN")
     if token != GATEWAY_TOKEN:
         raise HTTPException(401, "无效的网关令牌")
+
+
+def _check_phrase(phrase: Optional[str]) -> None:
+    if not ACCESS_PHRASE:
+        return
+    got = (phrase or "").strip()
+    if not hmac.compare_digest(got, ACCESS_PHRASE):
+        raise HTTPException(403, "访问口令不正确")
 
 
 def _check_rate() -> None:
@@ -60,6 +73,7 @@ async def prompt_polish(
     req: PolishRequest, x_gateway_token: Optional[str] = Header(default=None)
 ) -> dict:
     _check_token(x_gateway_token)
+    _check_phrase(req.phrase)
     try:
         return await run_in_threadpool(polish_mod.polish, req.idea)
     except Exception as e:  # noqa: BLE001
@@ -71,6 +85,7 @@ async def video_create(
     req: CreateRequest, x_gateway_token: Optional[str] = Header(default=None)
 ) -> dict:
     _check_token(x_gateway_token)
+    _check_phrase(req.phrase)
     _check_rate()
     try:
         task_id = await run_in_threadpool(video.submit_task, req.prompt)

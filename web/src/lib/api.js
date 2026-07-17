@@ -1,6 +1,8 @@
 // 调用 CFC 网关的 API 封装
 // 生产:VITE_API_URL = CFC 触发器基地址(不带路径)
 // 本地:默认直连本地 server,需要 VITE_DEV_GATEWAY_TOKEN
+import { loadPhrase } from './phrase.js'
+
 const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:8001').replace(/\/$/, '')
 const DEV_TOKEN = import.meta.env.VITE_DEV_GATEWAY_TOKEN || ''
 
@@ -22,11 +24,17 @@ async function request(method, path, { body, query } = {}) {
   return data
 }
 
+function withPhrase(body) {
+  return { ...body, phrase: loadPhrase().trim() }
+}
+
 /** 优化提示词 → {title, polished_prompt, style} */
-export const polishPrompt = (idea) => request('POST', '/prompt/polish', { body: { idea } })
+export const polishPrompt = (idea) =>
+  request('POST', '/prompt/polish', { body: withPhrase({ idea }) })
 
 /** 提交生成任务 → {task_id} */
-export const createVideo = (prompt) => request('POST', '/video/create', { body: { prompt } })
+export const createVideo = (prompt) =>
+  request('POST', '/video/create', { body: withPhrase({ prompt }) })
 
 /** 查询任务 → {status, video_url?, error?} */
 export const getVideoStatus = (taskId) =>
