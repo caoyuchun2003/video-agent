@@ -16,7 +16,18 @@ Resources:
         Variables:
           ALLOW_ORIGIN: 'https://video.yuchuntest.com'
       Events:
+        # 贪婪路径：/prompt/polish、/video/create、/video/status
         VideoHttp:
+          Type: HTTP
+          Properties:
+            ResourcePath: /{proxy+}
+            Method:
+              - GET
+              - POST
+              - OPTIONS
+            AuthType: anonymous
+        # 兼容根路径探测
+        VideoRoot:
           Type: HTTP
           Properties:
             ResourcePath: /
